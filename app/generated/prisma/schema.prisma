@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  email     String   @unique @db.VarChar(100)
+  password  String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 关联
+  tasks      Task[]
+  studyPlans StudyPlan[]
+  tags       Tag[]
+
+  @@map("users")
+}
+
+// 待办任务模型
+model Task {
+  id          Int        @id @default(autoincrement())
+  userId      Int        @map("user_id")
+  title       String     @db.VarChar(100)
+  description String?    @db.Text
+  status      TaskStatus @default(pending)
+  priority    Priority   @default(medium)
+  dueDate     DateTime?  @map("due_date")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // 关联
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskTags TaskTag[]
+
+  @@map("tasks")
+}
+
+// 学习计划模型
+model StudyPlan {
+  id          Int        @id @default(autoincrement())
+  userId      Int        @map("user_id")
+  title       String     @db.VarChar(100)
+  description String?    @db.Text
+  startDate   DateTime   @map("start_date") @db.Date
+  endDate     DateTime?  @map("end_date") @db.Date
+  status      PlanStatus @default(active)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // 关联
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyItems StudyItem[]
+  planTags   PlanTag[]
+
+  @@map("study_plans")
+}
+
+// 学习项目模型
+model StudyItem {
+  id                   Int        @id @default(autoincrement())
+  planId               Int        @map("plan_id")
+  title                String     @db.VarChar(100)
+  description          String?    @db.Text
+  estimatedHours       Decimal?   @map("estimated_hours") @db.Decimal(5, 2)
+  actualHours          Decimal?   @map("actual_hours") @db.Decimal(5, 2)
+  status               ItemStatus @default(not_started)
+  completionPercentage Int        @default(0) @map("completion_percentage")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  // 关联
+  studyPlan StudyPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  studyLogs StudyLog[]
+
+  @@map("study_items")
+}
+
+// 学习记录模型
+model StudyLog {
+  id         Int      @id @default(autoincrement())
+  itemId     Int      @map("item_id")
+  studyDate  DateTime @map("study_date") @db.Date
+  hoursSpent Decimal  @map("hours_spent") @db.Decimal(5, 2)
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // 关联
+  studyItem StudyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("study_logs")
+}
+
+// 标签模型
+model Tag {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  name      String   @db.VarChar(50)
+  color     String   @default("#000000") @db.VarChar(7)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // 关联
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskTags TaskTag[]
+  planTags PlanTag[]
+
+  @@unique([userId, name])
+  @@map("tags")
+}
+
+// 任务标签关联模型
+model TaskTag {
+  taskId Int @map("task_id")
+  tagId  Int @map("tag_id")
+
+  // 关联
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+  @@map("task_tags")
+}
+
+// 学习计划标签关联模型
+model PlanTag {
+  planId Int @map("plan_id")
+  tagId  Int @map("tag_id")
+
+  // 关联
+  studyPlan StudyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  tag       Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([planId, tagId])
+  @@map("plan_tags")
+}
+
+// 枚举类型
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+  cancelled
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+enum PlanStatus {
+  active
+  completed
+  cancelled
+}
+
+enum ItemStatus {
+  not_started
+  in_progress
+  completed
+}
