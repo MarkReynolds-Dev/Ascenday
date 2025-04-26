@@ -122,8 +122,18 @@ exports.Prisma.UserScalarFieldEnum = {
   username: 'username',
   email: 'email',
   password: 'password',
+  emailVerified: 'emailVerified',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.VerificationCodeScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  code: 'code',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  userId: 'userId'
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -231,6 +241,7 @@ exports.ItemStatus = exports.$Enums.ItemStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  VerificationCode: 'VerificationCode',
   Task: 'Task',
   StudyPlan: 'StudyPlan',
   StudyItem: 'StudyItem',

@@ -75,14 +75,14 @@ export function AuthProvider({ children }) {
   };
 
   // 注册函数
-  const register = async (username, email, password) => {
+  const register = async (username, email, password, verificationCode) => {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, verificationCode }),
       });
 
       const data = await response.json();
