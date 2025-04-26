@@ -206,7 +206,6 @@ npm install @prisma/client prisma bcryptjs jsonwebtoken axios react-hook-form zo
 1. **界面整合**
 
    - 设计主页面布局
-   - 实现导航系统
    - 优化移动端响应式设计
 
 2. **系统优化**
